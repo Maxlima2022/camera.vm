@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gravação de Vídeo</title>
+</head>
+<body>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="startButton">Iniciar Gravação</button>
+    <button id="stopButton">Parar Gravação</button>
+
+    <script>
+        // Acessar a câmera do dispositivo
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(function (stream) {
+                var videoElement = document.getElementById('video');
+                videoElement.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error('Erro ao acessar a câmera: ', error);
+            });
+
+        // Gravar o vídeo
+        var mediaRecorder;
+        var chunks = [];
+
+        document.getElementById('startButton').addEventListener('click', function () {
+            var videoElement = document.getElementById('video');
+            mediaRecorder = new MediaRecorder(videoElement.srcObject);
+
+            mediaRecorder.ondataavailable = function (e) {
+                chunks.push(e.data);
+            };
+
+            mediaRecorder.start();
+        });
+
+        // Parar a gravação e salvar o vídeo
+        document.getElementById('stopButton').addEventListener('click', function () {
+            mediaRecorder.stop();
+
+            mediaRecorder.onstop = function () {
+                var blob = new Blob(chunks, { type: 'video/webm' });
+                var url = URL.createObjectURL(blob);
+
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'video.webm';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        });
+    </script>
+</body>
+</html>
